@@ -105,8 +105,7 @@ class AppLauncher {
      */
     tryLaunchApp() {
         const os = this.detectOS();
-        // const deepLink = this.buildDeepLink();
-        const deepLink = this.location.href;
+        const deepLink = this.buildDeepLink();
         
         this.debug(`Attempting to launch app...`);
         this.debug(`OS: ${os}`);
