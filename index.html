@@ -224,9 +224,25 @@ class AppLauncher {
         // 기본 스킴
         let deepLink = this.config.bAppScheme;
         
-        // URL 파라미터가 있으면 추가
-        if (Object.keys(this.params).length > 0) {
-            // 예시: juryeol://?param1=value1&param2=value2
+        // airbridge_referrer 파라미터 우선 처리
+        const airbridgeReferrer = this.params.airbridge_referrer;
+        
+        if (airbridgeReferrer) {
+            // airbridge_referrer가 있으면 우선적으로 추가
+            deepLink += `?airbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
+            
+            // 나머지 파라미터도 추가
+            const otherParams = { ...this.params };
+            delete otherParams.airbridge_referrer;
+            
+            if (Object.keys(otherParams).length > 0) {
+                const otherQueryString = new URLSearchParams(otherParams).toString();
+                deepLink += '&' + otherQueryString;
+            }
+            
+            this.debug('Airbridge referrer preserved:', airbridgeReferrer);
+        } else if (Object.keys(this.params).length > 0) {
+            // airbridge_referrer가 없으면 모든 파라미터 추가
             const queryString = new URLSearchParams(this.params).toString();
             deepLink += '?' + queryString;
         }
