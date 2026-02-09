@@ -79,7 +79,7 @@ class AppLauncher {
         
         if (airbridgeReferrer) {
             // 기존 스킴에 이미 ?가 있으므로 &로 연결
-            deepLink += `&airbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
+            deepLink += `?airbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
             
             // 나머지 파라미터도 추가
             const otherParams = { ...this.params };
