@@ -1,18 +1,13 @@
-/**
- * Bridge Page App Launcher
- * A앱(airbridgesample://) → 브릿지 페이지 → B앱(juryeol://) 실행
- */
-
 class AppLauncher {
     constructor() {
         this.config = {
             // B앱 정보
-            bAppScheme: 'juryeol://',
-            bAppPackageName: 'com.juryeol.app', // 실제 패키지명으로 변경 필요
+            bAppScheme: 'juryeol://webview?url=https://judying.github.io/demosite/',
+            bAppPackageName: 'com.juryeol.app', // B앱의 실제 패키지명
             
             // 타이밍 설정 (ms)
-            launchDelay: 500,        // 페이지 로드 후 앱 실행 시도까지 대기 시간
-            fallbackDelay: 2500,     // 앱 실행 실패 판단 시간
+            launchDelay: 300,        // 페이지 로드 후 앱 실행 시도까지 대기 시간 (300ms로 단축)
+            fallbackDelay: 2000,     // 앱 실행 실패 판단 시간 (2초로 단축)
             
             // 디버그 모드
             debugMode: true          // true: 디버그 정보 표시, false: 숨김
@@ -76,14 +71,30 @@ class AppLauncher {
      * B앱으로 전달할 딥링크 URL 생성
      */
     buildDeepLink() {
-        // 기본 스킴
+        // 기본 스킴 (이미 url 파라미터 포함)
         let deepLink = this.config.bAppScheme;
         
-        // URL 파라미터가 있으면 추가
-        if (Object.keys(this.params).length > 0) {
-            // 예시: juryeol://?param1=value1&param2=value2
+        // airbridge_referrer 파라미터 우선 처리
+        const airbridgeReferrer = this.params.airbridge_referrer;
+        
+        if (airbridgeReferrer) {
+            // 기존 스킴에 이미 ?가 있으므로 &로 연결
+            deepLink += `&airbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
+            
+            // 나머지 파라미터도 추가
+            const otherParams = { ...this.params };
+            delete otherParams.airbridge_referrer;
+            
+            if (Object.keys(otherParams).length > 0) {
+                const otherQueryString = new URLSearchParams(otherParams).toString();
+                deepLink += '&' + otherQueryString;
+            }
+            
+            this.debug('Airbridge referrer preserved:', airbridgeReferrer);
+        } else if (Object.keys(this.params).length > 0) {
+            // airbridge_referrer가 없으면 모든 파라미터 추가
             const queryString = new URLSearchParams(this.params).toString();
-            deepLink += '?' + queryString;
+            deepLink += '&' + queryString;
         }
         
         return deepLink;
@@ -113,44 +124,49 @@ class AppLauncher {
      */
     launchAndroidApp(deepLink) {
         this.debug('Launching Android app...');
+        this.updateStatus('앱 실행 중...');
         
-        // Method 1: iframe을 이용한 방식 (primary)
-        this.tryLaunchViaIframe(deepLink);
+        // Method 1: Intent URI 방식 (Primary - 팝업 없이 바로 실행)
+        this.tryLaunchViaIntent(deepLink);
         
-        // Method 2: location.href 방식 (fallback)
+        // Method 2: window.location.href (fallback)
         setTimeout(() => {
             this.tryLaunchViaLocation(deepLink);
-        }, 100);
+        }, 500);
     }
 
     /**
-     * iframe을 이용한 앱 실행
+     * Intent URI를 이용한 앱 실행 (Primary Method)
+     * Chrome에서 팝업 없이 바로 앱을 실행하는 방식
      */
-    tryLaunchViaIframe(deepLink) {
+    tryLaunchViaIntent(deepLink) {
         try {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = deepLink;
-            document.body.appendChild(iframe);
+            // Intent URI 스킴으로 변환
+            // juryeol://webview?url=... 형태를 intent://webview?url=...#Intent;scheme=juryeol;...;end 로 변환
+            const path = deepLink.replace('juryeol://', '');
+            const intentUrl = `intent://${path}#Intent;scheme=juryeol;package=${this.config.bAppPackageName};end`;
             
-            this.debug('App launch attempted via iframe');
+            this.debug('Attempting launch via Intent URI (Primary):', intentUrl);
             
-            // iframe은 즉시 제거하지 않고 잠시 유지
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 1000);
+            // 바로 location.href로 실행
+            window.location.href = intentUrl;
+            
+            this.debug('Intent URI launch command sent');
+            this.updateStatus('앱 실행 명령 전송됨');
         } catch (e) {
-            this.debug('Error launching via iframe:', e);
+            this.debug('Error launching via Intent:', e);
+            this.updateStatus('Intent 실행 실패: ' + e.message);
         }
     }
 
     /**
-     * location.href를 이용한 앱 실행
+     * location.href를 이용한 앱 실행 (Fallback Method)
      */
     tryLaunchViaLocation(deepLink) {
         try {
+            this.debug('Attempting launch via window.location.href (Fallback)');
             window.location.href = deepLink;
-            this.debug('App launch attempted via location.href');
+            this.debug('Location launch attempted');
         } catch (e) {
             this.debug('Error launching via location:', e);
         }
