@@ -99,17 +99,14 @@ class AppLauncher {
     // }
 
     buildDeepLink() {
-        const whole_url = location.href;
+       
         const webUrl = new URL('https://judying.github.io/demosite/');
-
-
         for (const [k, v] of Object.entries(this.params)) {
             webUrl.searchParams.set(k, v);
         }
 
-    
-        const deepLink = `juryeol://webview?url=${encodeURIComponent(whole_url)}`;
-        console.log('여기입니당~~~ ' + deepLink);
+        const deepLink = `juryeol://webview?url=${encodeURIComponent(webUrl.toString())}`;
+        console.log(deepLink);
 
         return deepLink;
     }
