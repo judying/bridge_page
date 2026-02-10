@@ -68,35 +68,50 @@ class AppLauncher {
      * B앱으로 전달할 딥링크 URL 생성
      */
     
+    // buildDeepLink() {
+    //     // 기본 스킴 (이미 url 파라미터 포함)
+    //     let deepLink = this.config.bAppScheme;
+        
+    //     // airbridge_referrer 파라미터 우선 처리
+    //     const airbridgeReferrer = this.params.airbridge_referrer;
+        
+    //     if (airbridgeReferrer) {
+    //         // 기존 스킴에 이미 ?가 있으므로 &로 연결
+    //         deepLink += `%3Fairbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
+            
+    //         // 나머지 파라미터도 추가
+    //         const otherParams = { ...this.params };
+    //         delete otherParams.airbridge_referrer;
+            
+    //         if (Object.keys(otherParams).length > 0) {
+    //             const otherQueryString = new URLSearchParams(otherParams).toString();
+    //             deepLink += '&' + otherQueryString;
+    //         }
+            
+    //         this.debug('Airbridge referrer preserved:', airbridgeReferrer);
+    //     } else if (Object.keys(this.params).length > 0) {
+    //         // airbridge_referrer가 없으면 모든 파라미터 추가
+    //         const queryString = new URLSearchParams(this.params).toString();
+    //         deepLink += '&' + queryString;
+    //     }
+        
+    //     return deepLink;
+    // }
+
     buildDeepLink() {
-        // 기본 스킴 (이미 url 파라미터 포함)
-        let deepLink = this.config.bAppScheme;
-        
-        // airbridge_referrer 파라미터 우선 처리
-        const airbridgeReferrer = this.params.airbridge_referrer;
-        
-        if (airbridgeReferrer) {
-            // 기존 스킴에 이미 ?가 있으므로 &로 연결
-            deepLink += `%3Fairbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
-            
-            // 나머지 파라미터도 추가
-            const otherParams = { ...this.params };
-            delete otherParams.airbridge_referrer;
-            
-            if (Object.keys(otherParams).length > 0) {
-                const otherQueryString = new URLSearchParams(otherParams).toString();
-                deepLink += '&' + otherQueryString;
-            }
-            
-            this.debug('Airbridge referrer preserved:', airbridgeReferrer);
-        } else if (Object.keys(this.params).length > 0) {
-            // airbridge_referrer가 없으면 모든 파라미터 추가
-            const queryString = new URLSearchParams(this.params).toString();
-            deepLink += '&' + queryString;
+        // 1) WebView에서 열 최종 URL(안쪽 URL)을 먼저 만든다
+        const webUrl = new URL('https://judying.github.io/demosite/');
+
+        // 들어온 모든 파라미터를 안쪽 URL의 query로 붙이고 싶다면:
+        for (const [k, v] of Object.entries(this.params)) {
+            webUrl.searchParams.set(k, v);
         }
-        
+
+        // 2) 안쪽 URL 전체를 통째로 인코딩해서 url=에 넣는다
+        const deepLink = `juryeol://webview?url=${encodeURIComponent(webUrl.toString())}`;
+
         return deepLink;
-    }
+        }
 
     /**
      * 앱 실행 시도
