@@ -1,24 +1,21 @@
 class AppLauncher {
     constructor() {
         this.config = {
-            // B앱 정보
+            //앱주소 + 웹뷰 url
             bAppScheme: 'juryeol://webview?url=https://judying.github.io/demosite/',
-            bAppPackageName: 'com.juryeol.app', // B앱의 실제 패키지명
+            bAppPackageName: 'com.juryeol.app', 
             
-            // 타이밍 설정 (ms)
-            launchDelay: 300,        // 페이지 로드 후 앱 실행 시도까지 대기 시간 (300ms로 단축)
-            fallbackDelay: 2000,     // 앱 실행 실패 판단 시간 (2초로 단축)
+            // 타이밍 설정
+            launchDelay: 300,        
+            fallbackDelay: 2000,     
             
             // 디버그 모드
-            debugMode: true          // true: 디버그 정보 표시, false: 숨김
+            debugMode: true         
         };
 
         this.init();
     }
 
-    /**
-     * 초기화
-     */
     init() {
         this.debug('AppLauncher initialized');
         
@@ -70,6 +67,7 @@ class AppLauncher {
     /**
      * B앱으로 전달할 딥링크 URL 생성
      */
+    
     buildDeepLink() {
         // 기본 스킴 (이미 url 파라미터 포함)
         let deepLink = this.config.bAppScheme;
@@ -79,7 +77,7 @@ class AppLauncher {
         
         if (airbridgeReferrer) {
             // 기존 스킴에 이미 ?가 있으므로 &로 연결
-            deepLink += `?airbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
+            deepLink += `%3Fairbridge_referrer=${encodeURIComponent(airbridgeReferrer)}`;
             
             // 나머지 파라미터도 추가
             const otherParams = { ...this.params };
