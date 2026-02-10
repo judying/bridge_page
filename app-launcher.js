@@ -99,23 +99,24 @@ class AppLauncher {
     // }
 
     buildDeepLink() {
-        // 1) WebView에서 열 최종 URL(안쪽 URL)을 먼저 만든다
+        const whole_url = location.href;
         const webUrl = new URL('https://judying.github.io/demosite/');
 
-        // 들어온 모든 파라미터를 안쪽 URL의 query로 붙이고 싶다면:
+
         for (const [k, v] of Object.entries(this.params)) {
             webUrl.searchParams.set(k, v);
         }
 
-        // 2) 안쪽 URL 전체를 통째로 인코딩해서 url=에 넣는다
-        const deepLink = `juryeol://webview?url=${encodeURIComponent(webUrl.toString())}`;
+    
+        const deepLink = `juryeol://webview?url=${encodeURIComponent(whole_url)}`;
+        console.log('여기입니당~~~ ' + deepLink);
 
         return deepLink;
-        }
+    }
 
-    /**
-     * 앱 실행 시도
-     */
+    
+    //앱 실행
+     
     tryLaunchApp() {
         const os = this.detectOS();
         const deepLink = this.buildDeepLink();
@@ -132,9 +133,7 @@ class AppLauncher {
         }
     }
 
-    /**
-     * Android 앱 실행
-     */
+    
     launchAndroidApp(deepLink) {
         this.debug('Launching Android app...');
         this.updateStatus('앱 실행 중...');
